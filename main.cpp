@@ -8,35 +8,29 @@
 #include <random>
 #include <string>
 #include <chrono>
-
-using namespace std;
+/*nessesary includes iostream/string,sstream, fstream,ctime, random,unordered_map, vector*/
 class TextGenerator{
 private:
-	bool debug;
+	std::unordered_map<string, vector<string>> data;
+	//std::map<string, vector<string>> data;
+	std::vector<std::string>rawData;
 public:
-	//unordered_map<string, vector<string>> data;
-	map<string, vector<string>> data;
-	vector<string>rawData;
 	TextGenerator(){
 		srand((int)time(0));
-		debug=false;
 	}
-	void setDebug(bool option){
-		debug=option;
-	}
+	///Loading data into the temporary buffor
 	void load(const string& filepath){
-		stringstream ss;
-		string line;
-		fstream file;
+		std::stringstream ss;
+		std::string line;
+		std::fstream file;
 		file.open(filepath);
 		if(file.good()){
-			while(getline(file,line)){
+			while(std::getline(file,line)){
 				for(unsigned int i =0;i<line.size();i++) {
 					char _char=line[i];
 					if(i==line.size()-1){
 						ss<<_char;
 						rawData.push_back(ss.str());
-						if(debug)cout<<"'"<<ss.str()<<"' word added to raw data array."<<endl;
 						ss.str(string());
 					}else{
 					if(_char!=' '){
@@ -44,46 +38,51 @@ public:
 					}
 					else{
 						rawData.push_back(ss.str());
-						if(debug)cout<<"'"<<ss.str()<<"' word added to raw data array."<<endl;
 						ss.str(string());
 					}}
 				}
 			}
 		}
-		else{cout<<"Failed to load '"<<filepath<<"' file"<<endl;}
+		else{std::cout<<"Failed to load '"<<filepath<<"' file"<<std::endl;}
 	}
+	///Proccessing data into the map, either ordered or not
+	/*
+	ABCDBACADA
+	A B C D 
+	-------
+ 	B C D B
+ 	C A A A	
+	D
+	*/
 	void proccessData(){
-		if(debug)cout<<"\n\n\n"<<endl;
-		string first=rawData[0], second;
+		std::string first=rawData[0], second;
 		data[first]={};
-		if(debug)cout<<"data['"<<first<<"'] was pushed to the map as a key"<<endl;
 		for(unsigned int i=1;i<rawData.size();i++ ){
-			string word=rawData[i];
+			std::string word=rawData[i];
 			if(data.find(word)==data.end()){
 				//Dodawanie do mapy
 				second=word;
 				data[word]={};	
 				data[first].push_back(word);
-				if(debug)cout<<"'"<<word<<"' was added as a key to the data"<<" AND "<<"data['"<<first<<"'].push_back('"<<word<<"')\n";
 			}
 			else{
 				second=word;
 				data[first].push_back(second);
-				if(debug)cout<<"data['"<<first<<"'].push_back('"<<second<<"')\n";
 			}
 			first=second;
 		}	
-		//rawData.clear();
+		rawData.clear();
 	}
 	template<typename T>
-	static T getRandomElement(vector<T> arr){
+	static T getRandomElement(std::vector<T> arr){
 		unsigned int r=arr.size(); 
 		r=rand()%r;
 		return arr[r];
 	}
+	//Generating text using markov chains.
 	string generate(unsigned int length){
-		string result="";
-		string word=rawData[0];
+		std::string result="";
+		std::string word=rawData[0];
 		for(unsigned int i =0 ; i<length;i++){
 			if(data[word].size()!=0){
 				string temp=getRandomElement(data[word]);
@@ -96,40 +95,33 @@ public:
 	}
 };
 int main(){
-	cout<<"Text Generator v0.01"<<endl;
-	cout<<"Text length:";
+	std::cout<<"Text Generator v0.01"<<std::endl;
+	std::cout<<"Text length:";
 	unsigned int l;
-	//cin>>l;
-	l=250;
-	TextGenerator gen;
-	gen.setDebug(false);
-	cout<<"Filename: ";
+	std::cin>>l;
+	/*usage
+	TextGenerator t;
+	t.load(filename);
+	t.proccess();
+	std::string s = t.generate(length);*/
+	
+	std::cout<<"Filename: ";
 	string f;
-	//cin>>f;
+	std::cin>>f;
+	TextGenerator gen;
 	f="hungergames.txt";
-	{
-	auto start=chrono::steady_clock::now();
+	
+	auto start=std::chrono::steady_clock::now();
+	
 	gen.load(f);
-	auto end=chrono::steady_clock::now();
-	chrono::duration<double> timeElapsed = end-start;
-	cout<<"Loading took: "<<timeElapsed.count()<<" seconds "<<endl;
-	}
-
-	{
-	auto start=chrono::steady_clock::now();
 	gen.proccessData();
-	auto end=chrono::steady_clock::now();
-	chrono::duration<double> timeElapsed = end-start;
-	cout<<"Initial proccessing took: "<<timeElapsed.count()<<" seconds "<<endl;
-	}
-	cout<<"Result:\n\n";
-	{
-	auto start=chrono::steady_clock::now();
-	cout<<gen.generate(l)<<endl;
-	auto end=chrono::steady_clock::now();
-	chrono::duration<double> timeElapsed = end-start;
-	cout<<"Generatin took: "<<timeElapsed.count()<<" seconds "<<endl;
-	}
-	cout<<"\nThank you for using TextGenerator"<<endl;
-	cout<<"Raw data size= "<<gen.rawData.size()<<endl;
+	std::cout<<"Result:\n\n";
+	std::cout<<gen.generate(l)<<estd::ndl;
+	
+	//time control stuff
+	auto end=std::chrono::steady_clock::now();
+	std::chrono::duration<double> timeElapsed = end-start;
+	std::cout<<"Generatin took: "<<timeElapsed.count()<<" seconds "<<std::endl;
+	
+	std::cout<<"\nThank you for using TextGenerator"<<std::endl;
 }
